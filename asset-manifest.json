@@ -1,0 +1,15 @@
+{
+  "files": {
+    "main.css": "/lua-fluent-bit-online-playground/static/css/main.073c9b0a.css",
+    "main.js": "/lua-fluent-bit-online-playground/static/js/main.aeae4387.js",
+    "static/js/787.3461f4bf.chunk.js": "/lua-fluent-bit-online-playground/static/js/787.3461f4bf.chunk.js",
+    "index.html": "/lua-fluent-bit-online-playground/index.html",
+    "main.073c9b0a.css.map": "/lua-fluent-bit-online-playground/static/css/main.073c9b0a.css.map",
+    "main.aeae4387.js.map": "/lua-fluent-bit-online-playground/static/js/main.aeae4387.js.map",
+    "787.3461f4bf.chunk.js.map": "/lua-fluent-bit-online-playground/static/js/787.3461f4bf.chunk.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.073c9b0a.css",
+    "static/js/main.aeae4387.js"
+  ]
+}
