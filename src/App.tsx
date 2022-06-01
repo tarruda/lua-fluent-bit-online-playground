@@ -5,6 +5,7 @@ import CodeMirror from '@uiw/react-codemirror';
 import { StreamLanguage } from '@codemirror/language';
 import { json } from '@codemirror/lang-json';
 import { lua } from '@codemirror/legacy-modes/mode/lua';
+import _ from 'underscore'
 
 const fengari = require("fengari-web");
 
@@ -79,6 +80,45 @@ const initialFilter = `function cb_filter(tag, ts, record)
 end
 `
 
+function run(input: string, filter: string, setOut: Function) {
+  const jsonExpressions = input.split('\n')
+  const filterScript = filter + '\n' + luaSupport
+  const luaFn = fengari.load(filterScript)()
+  const output = []
+  const ts = 0
+  const tag = "my-tag"
+  for (const jsonStr of jsonExpressions) {
+    if (!jsonStr.trim()) {
+      continue
+    }
+    let obj: any
+    try {
+      obj = JSON.parse(jsonStr)
+    } catch (err) {
+      console.error(err)
+      continue
+    }
+    const [code, newTs, newObj] = luaFn(tag, ts, obj)
+    switch (code) {
+      case 0:
+        output.push(JSON.stringify([ts, obj]))
+      break
+      case 1:
+        output.push(JSON.stringify([newTs, newObj]))
+      break
+      case 2:
+        output.push(JSON.stringify([ts, newObj]))
+      break
+      default:
+        continue
+    }
+  }
+  localStorage.setItem(storageKey, JSON.stringify({ input, filter }))
+  setOut(output.join('\n'))
+}
+
+const debouncedRun = _.debounce(run, 1000);
+
 function App() {
   const [input, setInput] = useState('')
   const [filter, setFilter] = useState('')
@@ -106,46 +146,9 @@ function App() {
 
   useEffect(tryRun, [input, filter])
 
-  function run() {
-    const jsonExpressions = input.split('\n')
-    const filterScript = filter + '\n' + luaSupport
-    const luaFn = fengari.load(filterScript)()
-    const output = []
-    const ts = 0
-    const tag = "my-tag"
-    for (const jsonStr of jsonExpressions) {
-      if (!jsonStr.trim()) {
-        continue
-      }
-      let obj: any
-      try {
-        obj = JSON.parse(jsonStr)
-      } catch (err) {
-        console.error(err)
-        continue
-      }
-      const [code, newTs, newObj] = luaFn(tag, ts, obj)
-      switch (code) {
-        case 0:
-          output.push(JSON.stringify([ts, obj]))
-          break
-        case 1:
-          output.push(JSON.stringify([newTs, newObj]))
-          break
-        case 2:
-          output.push(JSON.stringify([ts, newObj]))
-          break
-        default:
-          continue
-      }
-    }
-    localStorage.setItem(storageKey, JSON.stringify({ input, filter }))
-    setOut(output.join('\n'))
-  }
-
   function tryRun() {
     try {
-      run()
+      debouncedRun(input, filter, setOut)
     } catch (err) {
       console.error("failed to run script", err)
     }
