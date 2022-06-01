@@ -99,18 +99,32 @@ function run(input: string, filter: string, setOut: Function) {
       continue
     }
     const [code, newTs, newObj] = luaFn(tag, ts, obj)
+    let resultTs
+    let resultObj
     switch (code) {
       case 0:
-        output.push(JSON.stringify([ts, obj]))
+        resultTs = ts
+        resultObj = obj
       break
       case 1:
-        output.push(JSON.stringify([newTs, newObj]))
+        resultTs = newTs
+        resultObj = newObj
       break
       case 2:
-        output.push(JSON.stringify([ts, newObj]))
+        resultTs = ts
+        resultObj = newObj
       break
       default:
         continue
+    }
+
+    if (Array.isArray(newObj)) {
+      // split
+      for (const item of newObj) {
+        output.push(JSON.stringify([resultTs, item]))
+      }
+    } else {
+      output.push(JSON.stringify([resultTs, resultObj]))
     }
   }
   localStorage.setItem(storageKey, JSON.stringify({ input, filter }))
@@ -144,15 +158,9 @@ function App() {
 
   }, [])
 
-  useEffect(tryRun, [input, filter])
-
-  function tryRun() {
-    try {
+  useEffect(() => {
       debouncedRun(input, filter, setOut)
-    } catch (err) {
-      console.error("failed to run script", err)
-    }
-  }
+  }, [input, filter])
 
   return (
     <div>
